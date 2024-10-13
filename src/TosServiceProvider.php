@@ -41,6 +41,30 @@ class TosServiceProvider extends ServiceProvider
             $config['is_cname'] = $config['bucket_endpoint'];
             $config['token'] ??= $config['security_token'] ?? null;
             $config['securityToken'] = $config['token'];
+            if (isset($config['http']['read_timeout'])) {
+                $config['http']['read_timeout'] *= 1000;
+            }
+
+            if (isset($config['http']['connect_timeout'])) {
+                $config['http']['connect_timeout'] *= 1000;
+            }
+
+            $optionMappings = [
+                'key' => 'ak',
+                'secret' => 'sk',
+                'token' => 'securityToken',
+                'region' => 'region',
+                'endpoint' => 'endpoint',
+                'http.verify' => 'enableVerifySSL',
+                'http.read_timeout' => 'socketTimeout',
+                'http.connect_timeout' => 'connectionTimeout',
+            ];
+            foreach ($optionMappings as $standardOption => $clientOption) {
+                if (Arr::has($config, $standardOption)) {
+                    $config[$clientOption] ??= Arr::get($config, $standardOption);
+                }
+            }
+
             $options = array_merge(
                 $options,
                 Arr::only($config, ['url', 'temporary_url', 'endpoint', 'bucket_endpoint'])
